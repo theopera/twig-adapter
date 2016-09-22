@@ -13,10 +13,13 @@
 namespace Opera\Adapter\Twig;
 
 
+use Opera\Component\Authentication\UserInterface;
 use Opera\Component\Template\RenderInterface;
 use Opera\Component\Template\TemplateException;
+use Opera\Component\WebApplication\Context;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
+use Twig_SimpleFunction;
 
 class TwigAdapter implements RenderInterface
 {
@@ -26,10 +29,41 @@ class TwigAdapter implements RenderInterface
     private $twig;
 
     private $templateFile = null;
+    /**
+     * @var Context
+     */
+    private $context;
 
-    public function __construct(string $basePath = null, Twig_Environment $twig = null)
+    /**
+     * TwigAdapter constructor.
+     *
+     * @param Context $context
+     * @param string|null $basePath
+     * @param Twig_Environment|null $twig
+     */
+    public function __construct(Context $context, string $basePath = null, Twig_Environment $twig = null)
     {
+        $this->context = $context;
         $this->twig = $twig ?? $this->getDefaultTwigEnvironment($basePath);
+
+        $this->init();
+    }
+
+    protected function init()
+    {
+        // Add ACL access through the twig template files
+        $context = $this->context;
+        $this->twig->addFunction(new Twig_SimpleFunction('has_permission',  function (string $permission) use($context) {
+            $acl = $context->getAccessControlList();
+            $auth = $context->getAuthentication();
+            $user = $auth->getUser();
+
+            if ($user instanceof UserInterface) {
+                return $acl->hasAccess($user, $permission);
+            }
+
+            return false;
+        }));
     }
 
     /**
