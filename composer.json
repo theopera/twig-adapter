@@ -9,7 +9,7 @@
     }
   ],
   "require": {
-    "theopera/framework": "0.2a",
+    "theopera/framework": "@alpha",
     "twig/twig": "^1.24"
   },
   "require-dev": {
