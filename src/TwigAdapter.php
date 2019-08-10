@@ -4,7 +4,7 @@
  * TwigAdapter.php
  *
  * @author    Marc Heuker of Hoek <me@marchoh.com>
- * @copyright 2016 - 2016 All rights reserved
+ * @copyright 2016 - 2019 All rights reserved
  * @license   MIT
  * @created   17-7-16
  * @version   1.0
@@ -17,14 +17,14 @@ use Opera\Component\Authentication\UserInterface;
 use Opera\Component\Template\RenderInterface;
 use Opera\Component\Template\TemplateException;
 use Opera\Component\WebApplication\Context;
-use Twig_Environment;
-use Twig_Loader_Filesystem;
-use Twig_SimpleFunction;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+use Twig\TwigFunction;
 
 class TwigAdapter implements RenderInterface
 {
     /**
-     * @var Twig_Environment
+     * @var Environment
      */
     private $twig;
 
@@ -39,9 +39,9 @@ class TwigAdapter implements RenderInterface
      *
      * @param Context $context
      * @param string|null $basePath
-     * @param Twig_Environment|null $twig
+     * @param Environment|null $twig
      */
-    public function __construct(Context $context, string $basePath = null, Twig_Environment $twig = null)
+    public function __construct(Context $context, string $basePath = null, Environment $twig = null)
     {
         $this->context = $context;
         $this->twig = $twig ?? $this->getDefaultTwigEnvironment($basePath);
@@ -53,7 +53,7 @@ class TwigAdapter implements RenderInterface
     {
         // Add ACL access through the twig template files
         $context = $this->context;
-        $this->twig->addFunction(new Twig_SimpleFunction('has_permission',  function (string $permission) use($context) {
+        $this->twig->addFunction(new TwigFunction('has_permission',  function (string $permission) use($context) {
             $acl = $context->getAccessControlList();
             $auth = $context->getAuthentication();
             $user = $auth->getUser();
@@ -91,14 +91,14 @@ class TwigAdapter implements RenderInterface
         return $this->twig->render($this->templateFile, $data);
     }
 
-    public function getTwig() : Twig_Environment
+    public function getTwig() : Environment
     {
         return $this->twig;
     }
 
-    private function getDefaultTwigEnvironment(string $basePath = null) : Twig_Environment
+    private function getDefaultTwigEnvironment(string $basePath = null) : Environment
     {
-        $loader = new Twig_Loader_Filesystem($basePath ?? '.');
-        return new Twig_Environment($loader);
+        $loader = new FilesystemLoader($basePath ?? '.');
+        return new Environment($loader);
     }
 }
